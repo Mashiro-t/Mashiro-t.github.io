@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FooCoin Price</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+  <!-- Navigation -->
+  <nav class="bg-white shadow-md">
+    <div class="max-w-4xl mx-auto px-6 py-4 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-indigo-600">CryptoCoin</h1>
+      <ul class="flex space-x-6 text-gray-600">
+        <li><a href="#" class="hover:text-indigo-600 transition">Home</a></li>
+        <li><a href="#" class="hover:text-indigo-600 transition">Markets</a></li>
+        <li><a href="#" class="hover:text-indigo-600 transition">Settings</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-grow flex items-center justify-center py-10">
+    <div class="bg-white rounded-2xl shadow-lg p-8 w-full max-w-3xl">
+      <header class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">FooCoin (FOO)</h2>
+          <p class="text-sm text-gray-500">Real-time price</p>
+        </div>
+        <div id="price" class="text-4xl font-bold text-gray-800">--.--</div>
+      </header>
+
+      <div class="relative">
+        <canvas id="priceChart" height="200"></canvas>
+        <div class="absolute top-0 right-0 m-2 px-2 py-1 bg-indigo-100 text-indigo-800 text-xs rounded">Updated every 3s</div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white">
+    <div class="max-w-4xl mx-auto px-6 py-4 text-center text-gray-500 text-xs">
+      Powered by CryptoCoin Engine.
+    </div>
+  </footer>
+
+  <script>
+    const priceElem = document.getElementById('price');
+    const ctx = document.getElementById('priceChart').getContext('2d');
+    const labels = Array(30).fill('');
+    const dataValues = [];
+    let basePrice = 100.00;
+
+    // Initialize history with variation
+    for (let i = 0; i < labels.length; i++) {
+      basePrice += (Math.random() - 0.5) * 5;
+      dataValues.push(parseFloat(basePrice.toFixed(2)));
+    }
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          label: 'FOO Price (USD)',
+          data: dataValues,
+          borderColor: 'rgba(99, 102, 241, 0.8)',
+          borderWidth: 3,
+          pointRadius: 0,
+          tension: 0.4,
+          fill: true,
+          backgroundColor: 'rgba(99, 102, 241, 0.1)'
+        }]
+      },
+      options: {
+        interaction: { intersect: false, mode: 'index' },
+        scales: {
+          x: { display: false },
+          y: {
+            beginAtZero: false,
+            grid: { color: '#f3f4f6' }
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: context => `$${context.parsed.y.toFixed(2)}`
+            }
+          }
+        }
+      }
+    });
+
+    function update() {
+      const oldValue = dataValues[dataValues.length - 1];
+      const change = (Math.random() - 0.5) * 5;
+      const newValue = parseFloat((oldValue + change).toFixed(2));
+
+      // Update price display
+      priceElem.textContent = `$${newValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      priceElem.classList.remove('text-green-500', 'text-red-500');
+      priceElem.classList.add(newValue >= oldValue ? 'text-green-500' : 'text-red-500');
+
+      // Update chart
+      dataValues.push(newValue);
+      dataValues.shift();
+      chart.data.datasets[0].data = dataValues;
+      chart.update();
+    }
+
+    // Initial display
+    priceElem.textContent = `$${dataValues[dataValues.length - 1].toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    priceElem.classList.add('text-green-500');
+
+    // Poll every 3 seconds
+    setInterval(update, 3000);
+  </script>
+</body>
+</html>
